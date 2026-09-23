@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>光纖訊息傳送體驗 v4</title>
+<style>
+:root{
+  --bg:#08111f;
+  --panel:#101b2e;
+  --panel2:#16243b;
+  --text:#eef6ff;
+  --muted:#9db1c9;
+  --accent:#5bd5ff;
+  --success:#6ee7a8;
+  --warn:#ffd166;
+  --danger:#ff6b6b;
+  --red:#ff3b3b;
+  --blue:#2f7cff;
+  --white:#ffffff;
+  --border:#29415f;
+  --shadow:0 12px 30px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:radial-gradient(circle at top,#10233d 0,#08111f 42%,#050b14 100%);
+  color:var(--text);
+  min-height:100vh;
+}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.app{max-width:1180px;margin:auto;padding:18px}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;background:rgba(16,27,46,.88);border:1px solid var(--border);
+  border-radius:18px;box-shadow:var(--shadow);position:sticky;top:8px;z-index:20;backdrop-filter:blur(12px)
+}
+.brand h1{margin:0;font-size:clamp(20px,3vw,30px)}
+.brand small{color:var(--muted)}
+.mapping{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.map-pill{
+  border:1px solid var(--border);background:#0c1728;border-radius:999px;padding:7px 10px;
+  font-weight:700;display:flex;align-items:center;gap:7px
+}
+.map-pill select{
+  width:auto;min-width:118px;min-height:36px;padding:5px 30px 5px 9px;
+  border-radius:999px;background:#13233a;color:var(--text);border:1px solid #35506f;
+  font-weight:700
+}
+.dot{width:20px;height:20px;border-radius:50%;display:inline-block;border:2px solid rgba(255,255,255,.5);box-shadow:0 0 16px currentColor}
+main{margin-top:20px}
+.screen{display:none}
+.screen.active{display:block}
+.hero,.card{
+  background:linear-gradient(180deg,rgba(22,36,59,.96),rgba(12,23,40,.96));
+  border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow)
+}
+.hero{padding:34px;text-align:center}
+.hero h2{font-size:clamp(30px,5vw,54px);margin:6px 0}
+.hero p{color:var(--muted);font-size:18px}
+.flow{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:28px auto;
+  color:#d8eaff;font-weight:700
+}
+.flow span{background:#0b1728;border:1px solid var(--border);padding:10px 12px;border-radius:12px}
+.arrow{opacity:.55;align-self:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.mode-btn{
+  border:1px solid #2d5f83;background:linear-gradient(180deg,#12304b,#0c2136);color:#fff;
+  min-height:150px;border-radius:20px;padding:24px;cursor:pointer;box-shadow:var(--shadow);
+  transition:.18s transform,.18s border-color
+}
+.mode-btn:hover{transform:translateY(-2px);border-color:var(--accent)}
+.mode-btn .big{font-size:28px;font-weight:800;display:block;margin-bottom:6px}
+.mode-btn small{color:var(--muted);font-size:16px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.btn{
+  border:1px solid var(--border);background:#14243a;color:var(--text);
+  padding:12px 16px;border-radius:13px;font-weight:700;cursor:pointer;min-height:48px
+}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:#0f4b68;border-color:#1976a2}
+.btn.success{background:#145333;border-color:#2b8f5a}
+.btn.warn{background:#634a10;border-color:#9b771e}
+.btn.danger{background:#5b2227;border-color:#8c333b}
+.section-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:6px 0 14px}
+.section-title h2{margin:0}
+.section-title p{margin:4px 0;color:var(--muted)}
+.card{padding:20px}
+.settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+label{display:block;color:var(--muted);font-weight:700;margin-bottom:7px}
+select,input[type="text"],input[type="number"]{
+  width:100%;background:#081321;border:1px solid var(--border);color:#fff;
+  border-radius:12px;padding:13px 14px;min-height:48px
+}
+.signal-layout{display:grid;grid-template-columns:1.4fr .9fr;gap:18px}
+.light-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.light-btn{
+  min-height:180px;border-radius:26px;border:2px solid rgba(255,255,255,.16);
+  font-size:28px;font-weight:900;color:#fff;cursor:pointer;
+  position:relative;overflow:hidden;transition:transform .12s,box-shadow .12s;
+}
+.light-btn:active{transform:scale(.97)}
+.light-btn .orb{
+  width:74px;height:74px;border-radius:50%;display:block;margin:0 auto 12px;border:3px solid rgba(255,255,255,.6)
+}
+.light-btn.pulse{animation:pulse .28s ease}
+@keyframes pulse{50%{transform:scale(1.05)}}
+.buffer{
+  display:grid;grid-template-columns:repeat(8,minmax(44px,1fr));gap:8px;margin-top:14px
+}
+.bitcell{
+  background:#091524;border:1px solid var(--border);border-radius:12px;padding:8px 5px;text-align:center;min-height:82px
+}
+.bitcell .n{color:var(--muted);font-size:12px}
+.bitcell .lamp{width:30px;height:30px;border-radius:50%;margin:5px auto;border:1px solid rgba(255,255,255,.45)}
+.bitcell .b{font-weight:900;font-size:18px}
+.statusbox{
+  background:#081321;border:1px dashed #355a7d;border-radius:14px;padding:14px;margin-top:14px
+}
+.bigbits{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(24px,5vw,42px);letter-spacing:3px;font-weight:900}
+.messagebox{font-size:34px;font-weight:900;letter-spacing:6px;min-height:58px}
+.feedback{margin-top:12px;padding:12px 14px;border-radius:12px;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:rgba(38,153,89,.18);border:1px solid #2f925a}
+.feedback.bad{background:rgba(193,68,68,.18);border:1px solid #a34149}
+.feedback.info{background:rgba(59,130,246,.16);border:1px solid #375f9f}
+.decode-tools{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:12px}
+.hint{margin-top:12px;color:#eaf2ff}
+.weightrow{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:10px 0}
+.weightrow div{background:#0b1728;border:1px solid var(--border);padding:8px 4px;text-align:center;border-radius:10px}
+.fibre-wrap{margin:16px 0;background:#06101d;border:1px solid var(--border);border-radius:16px;padding:18px;overflow:hidden}
+.fibre{height:18px;border-radius:999px;background:linear-gradient(180deg,#1a3f59,#0a2236);box-shadow:inset 0 0 10px rgba(99,220,255,.2);position:relative;overflow:hidden}
+.pulse-dot{position:absolute;top:2px;width:14px;height:14px;border-radius:50%;left:-20px;box-shadow:0 0 16px currentColor}
+.pulse-dot.go{animation:travel 1.15s linear forwards}
+@keyframes travel{to{left:calc(100% + 20px)}}
+.step{
+  border-left:4px solid #2d6388;background:#0b1728;padding:14px;border-radius:10px;margin-top:12px
+}
+.char-target{font-size:60px;font-weight:900;text-align:center;padding:8px}
+.binary-entry{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.binary-entry button{
+  min-height:58px;border-radius:12px;background:#0c1728;color:#fff;border:1px solid var(--border);font-size:24px;font-weight:900
+}
+.signal-seq{display:flex;flex-wrap:wrap;gap:9px;min-height:58px;margin-top:10px}
+.signal-chip{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.5);box-shadow:0 0 15px rgba(255,255,255,.1)}
+.teacher-light{
+  min-height:300px;border-radius:24px;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:34px;font-weight:900;
+  position:relative;overflow:hidden
+}
+.teacher-light .orb{
+  width:140px;height:140px;border-radius:50%;border:4px solid rgba(255,255,255,.55);
+  margin-bottom:16px;transition:opacity .13s ease, transform .13s ease, background .12s ease, box-shadow .12s ease
+}
+.teacher-light.signal-flash .orb{
+  opacity:.05;
+  transform:scale(.72);
+  background:#0a1422 !important;
+  box-shadow:none !important
+}
+.teacher-light.signal-flash #teacherColorName{opacity:.15}
+.teacher-light #teacherColorName{transition:opacity .13s ease}
+.teacher-progress{
+  text-align:center;font-size:18px;color:var(--muted);font-weight:800;margin-bottom:10px
+}
+.teacher-choice{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0 18px
+}
+.teacher-choice button{
+  min-height:70px;border-radius:16px;border:1px solid var(--border);background:#0b1728;color:var(--text);
+  font-size:20px;font-weight:900;cursor:pointer
+}
+.teacher-choice button.active{
+  border-color:var(--accent);background:#103452;box-shadow:0 0 0 2px rgba(91,213,255,.12) inset
+}
+.teacher-secret-note{
+  margin-top:12px;padding:12px 14px;border-radius:12px;background:#081321;border:1px dashed #355a7d;
+  color:var(--muted);font-size:14px
+}
+.teacher-answer{
+  margin-top:16px;padding:22px;border-radius:18px;
+  background:linear-gradient(180deg,#102840,#0b1b2d);
+  border:1px solid #3e789d;text-align:center;display:none
+}
+.teacher-answer.show{display:block;animation:answerPop .35s ease}
+.teacher-answer .label{color:var(--muted);font-weight:800;margin-bottom:8px}
+.teacher-answer .value{
+  font-size:clamp(42px,8vw,84px);font-weight:950;letter-spacing:4px;
+  word-break:break-word
+}
+@keyframes answerPop{
+  0%{opacity:0;transform:scale(.9)}
+  100%{opacity:1;transform:scale(1)}
+}
+
+.ascii-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;display:none;align-items:center;justify-content:center;padding:18px
+}
+.ascii-modal.show{display:flex}
+.modal-card{max-width:850px;width:100%;max-height:85vh;overflow:auto;background:#0e1c2e;border:1px solid var(--border);border-radius:20px;padding:18px}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--border);padding:8px;text-align:center}
+th{position:sticky;top:0;background:#12233a}
+.small{font-size:13px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);padding:24px}
+@media(max-width:820px){
+  .grid2,.settings-grid,.signal-layout{grid-template-columns:1fr}
+  .light-btn{min-height:140px}
+}
+@media(max-width:620px){
+  .topbar{align-items:flex-start;flex-direction:column}
+  .mapping{justify-content:flex-start}
+  .app{padding:10px}
+  .hero{padding:22px 14px}
+  .buffer{grid-template-columns:repeat(4,1fr)}
+  .binary-entry{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1>光纖訊息傳送體驗</h1>
+      <small>光纖通訊實驗室 光纖通訊實驗室 光纖通訊實驗室 Fibre Optic Communication Lab · v4</small>
+    </div>
+    <div class="mapping">
+      <div class="map-pill">
+        <strong>0 =</strong><span id="map0Dot" class="dot"></span>
+        <select id="topColor0" aria-label="0 代表的顏色" onchange="changeTopMapping(0,this.value)">
+          <option value="red">紅色 Red</option>
+          <option value="white">白色 White</option>
+          <option value="blue">藍色 Blue</option>
+        </select>
+      </div>
+      <div class="map-pill">
+        <strong>1 =</strong><span id="map1Dot" class="dot"></span>
+        <select id="topColor1" aria-label="1 代表的顏色" onchange="changeTopMapping(1,this.value)">
+          <option value="blue">藍色 Blue</option>
+          <option value="white">白色 White</option>
+          <option value="red">紅色 Red</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="screen active">
+      <div class="hero">
+        <div class="small">中三 ICT · 數碼通訊體驗</div>
+        <h2>用「光」傳送 0 和 1</h2>
+        <p>觀察燈號、記錄二進制 Binary、利用 ASCII 解碼，再嘗試把文字重新編碼成光訊號。</p>
+        <div class="flow">
+          <span>文字 Text</span><b class="arrow">→</b><span>ASCII</span><b class="arrow">→</b>
+          <span>二進制 Binary</span><b class="arrow">→</b><span>光訊號 Light</span><b class="arrow">→</b>
+          <span>光纖 Fibre</span><b class="arrow">→</b><span>解碼 Decode</span>
+        </div>
+        <div class="grid2">
+          <button class="mode-btn" onclick="showScreen('receive')">
+            <span class="big">① 接收及解碼</span>
+            <small>接收及解碼 Receive & Decode</small>
+          </button>
+          <button class="mode-btn" onclick="showScreen('encode')">
+            <span class="big">② 編碼及發送</span>
+            <small>編碼及發送 Encode & Send</small>
+          </button>
+          <button class="mode-btn" onclick="showScreen('settings')">
+            <span class="big">⚙ 燈光設定</span>
+            <small>設定 0 / 1 使用哪兩種顏色</small>
+          </button>
+          <button class="mode-btn" onclick="showScreen('teacher')">
+            <span class="big">👩‍🏫 教師模式 Teacher Mode</span>
+            <small>隨機訊息燈號發送器 Random Signal Transmitter</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="settings" class="screen">
+      <div class="toolbar"><button class="btn" onclick="showScreen('home')">← 返回主頁</button></div>
+      <div class="card">
+        <div class="section-title"><div><h2>燈光設定 Light Mapping</h2><p>從紅、白、藍中選兩種，分別代表二進制 Binary 0 和 1；亦可直接在右上角修改。</p></div></div>
+        <div class="settings-grid">
+          <div>
+            <label>二進制 Binary 0</label>
+            <select id="color0" onchange="validateMapping()">
+              <option value="red">紅色 Red</option>
+              <option value="white">白色 White</option>
+              <option value="blue">藍色 Blue</option>
+            </select>
+          </div>
+          <div>
+            <label>二進制 Binary 1</label>
+            <select id="color1" onchange="validateMapping()">
+              <option value="blue">藍色 Blue</option>
+              <option value="white">白色 White</option>
+              <option value="red">紅色 Red</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar" style="margin-top:16px">
+          <button class="btn primary" onclick="applyMapping()">套用設定</button>
+          <button class="btn" onclick="swapMapping()">交換 0 / 1</button>
+        </div>
+        <div id="mappingFeedback" class="feedback"></div>
+      </div>
+    </section>
+
+    <section id="receive" class="screen">
+      <div class="toolbar">
+        <button class="btn" onclick="showScreen('home')">← 返回主頁</button>
+        <button class="btn" onclick="openAscii()">查看 ASCII 表 / ASCII Table</button>
+      </div>
+      <div class="section-title">
+        <div><h2>接收及解碼 Receive & Decode</h2><p>看到老師展示甚麼顏色，就按相同顏色。</p></div>
+      </div>
+      <div class="signal-layout">
+        <div class="card">
+          <div class="light-buttons" id="receiveLightButtons"></div>
+          <div class="statusbox">
+            <div class="small">目前位元組 Current Byte</div>
+            <div class="buffer" id="receiveBuffer"></div>
+            <div style="margin-top:12px"><span id="receiveCount">0 / 8 bits</span> · <span id="remainingText">還差 8 個位元 bits</span></div>
+            <div class="bigbits" id="receiveBits">________</div>
+          </div>
+          <div class="toolbar" style="margin-top:14px">
+            <button class="btn" onclick="undoSignal()">← 復原 Undo</button>
+            <button class="btn warn" onclick="clearByte()">清除這組 Clear Byte</button>
+            <button class="btn danger" onclick="resetReceive()">重新開始 Reset Activity</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>已接收訊息 Received Message</h3>
+          <div class="messagebox" id="receivedMessage">—</div>
+          <div class="step">
+            <strong>完成 8 個位元 8 bits 後：</strong>
+            <p>你認為這個 Byte 代表甚麼字元？</p>
+            <div class="decode-tools">
+              <input id="decodeAnswer" type="text" maxlength="1" placeholder="輸入 1 個字元" />
+              <button class="btn success" onclick="checkDecode()">檢查答案</button>
+            </div>
+            <div class="toolbar" style="margin-top:10px">
+              <button class="btn" onclick="showHint()">提示</button>
+            </div>
+            <div id="hintArea" class="hint"></div>
+            <div id="decodeFeedback" class="feedback"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="encode" class="screen">
+      <div class="toolbar">
+        <button class="btn" onclick="showScreen('home')">← 返回主頁</button>
+        <button class="btn" onclick="openAscii()">查看 ASCII 表 / ASCII Table</button>
+      </div>
+      <div class="card">
+        <div class="section-title"><div><h2>編碼及發送 Encode & Send</h2><p>把字元直接找出對應的 ASCII 8-bit 二進制，再轉成光訊號。</p></div></div>
+        <label>傳送訊息 Message to Send</label>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px">
+          <input id="encodeMessageInput" type="text" maxlength="12" value="OK" placeholder="例如 OK" />
+          <button class="btn primary" onclick="startEncode()">開始</button>
+        </div>
+      </div>
+
+      <div id="encodeWorkspace" class="card" style="margin-top:18px;display:none">
+        <div class="small">目前字元 <span id="charIndexLabel"></span></div>
+        <div id="currentChar" class="char-target">O</div>
+<div class="step">
+          <strong>步驟 1 STEP 1 · 8-bit 二進制 Binary</strong>
+          <div class="binary-entry" id="binaryEntry"></div>
+          <div class="toolbar" style="margin-top:10px">
+            <button class="btn primary" style="min-width:90px;font-size:22px" onclick="addBinaryEntry(0)">0</button>
+            <button class="btn primary" style="min-width:90px;font-size:22px" onclick="addBinaryEntry(1)">1</button>
+            <button class="btn" onclick="undoBinaryEntry()">← 復原 Undo</button>
+            <button class="btn success" onclick="checkBinaryEntry()">檢查二進制 Check Binary</button>
+          </div>
+          <div id="binaryFeedback" class="feedback"></div>
+        </div>
+
+        <div class="step">
+          <strong>步驟 2 STEP 2 · 二進制 Binary → 光訊號 Light Signal</strong>
+          <div class="small">根據上方 0 / 1 顏色設定，逐個建立 8 個燈號。</div>
+          <div class="light-buttons" id="encodeLightButtons" style="margin-top:12px"></div>
+          <div class="signal-seq" id="signalSequence"></div>
+          <div class="toolbar" style="margin-top:10px">
+            <button class="btn" onclick="undoEncodeSignal()">← 復原 Undo</button>
+            <button class="btn success" onclick="checkSignalSequence()">檢查燈號 Check Signal</button>
+          </div>
+          <div id="signalFeedback" class="feedback"></div>
+        </div>
+
+        <div class="step">
+          <strong>步驟 3 STEP 3 · 傳送 Transmit</strong>
+          <div class="fibre-wrap"><div class="fibre" id="fibre"></div></div>
+          <div class="toolbar">
+            <button id="transmitBtn" class="btn primary" onclick="transmitCurrent()" disabled>傳送 Transmit</button>
+          </div>
+          <div id="transmitFeedback" class="feedback"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="teacher" class="screen">
+      <div class="toolbar"><button class="btn" onclick="showScreen('home')">← 返回主頁</button></div>
+
+      <div class="card">
+        <div class="section-title">
+          <div>
+            <h2>教師模式 Teacher Mode</h2>
+            <p>選擇訊息長度，系統會從指定題庫隨機抽出一個訊息。答案不會顯示在投影畫面。</p>
+          </div>
+        </div>
+
+        <label>訊息長度 Message Length</label>
+        <div class="teacher-choice">
+          <button id="teacherLen1" class="active" onclick="selectTeacherLength(1)">1 個字元<br><span class="small">1 Character</span></button>
+          <button id="teacherLen2" onclick="selectTeacherLength(2)">2 個字元<br><span class="small">2 Characters</span></button>
+          <button id="teacherLen4" onclick="selectTeacherLength(4)">4 個字元<br><span class="small">4 Characters</span></button>
+        </div>
+
+        <button class="btn primary" style="width:100%;min-height:58px;font-size:18px" onclick="startTeacherRandom()">
+          🎲 隨機產生並開始 Random & Start
+        </button>
+
+        <div class="teacher-secret-note">
+          投影畫面只會顯示燈光及進度，不會顯示教師訊息、字元答案或目前的 0 / 1。
+        </div>
+      </div>
+
+      <div class="card" id="teacherWorkspace" style="margin-top:18px;display:none">
+        <div class="teacher-progress" id="teacherProgress">準備中…</div>
+
+        <div class="teacher-light" id="teacherLight">
+          <div class="orb" id="teacherOrb"></div>
+          <div id="teacherColorName"></div>
+          <div class="small" id="teacherSignalLabel">光訊號 Light Signal</div>
+        </div>
+
+        <div class="toolbar" style="margin-top:16px;justify-content:center">
+          <button class="btn" onclick="teacherPrev()">← 上一個 Previous</button>
+          <button class="btn primary" style="min-width:180px" onclick="teacherNext()">下一個訊號 Next →</button>
+        </div>
+
+        <div id="teacherEndFeedback" class="feedback"></div>
+
+        <div id="teacherAnswer" class="teacher-answer">
+          <div class="label">答案 Answer</div>
+          <div id="teacherAnswerValue" class="value"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    本活動以不同顏色代表 0 和 1，屬課堂模擬 Classroom Simulation。真實光纖通訊會利用高速光脈衝及不同調變方法傳送資料。
+  </footer>
+</div>
+
+<div id="asciiModal" class="ascii-modal" onclick="if(event.target===this) closeAscii()">
+  <div class="modal-card">
+    <div class="section-title"><div><h2>ASCII 參考表 / ASCII Table</h2><p>常用 ASCII 字元與 8-bit 二進制</p></div><button class="btn" onclick="closeAscii()">關閉</button></div>
+    <table>
+      <thead><tr><th>字元 Character</th><th>8-bit 二進制 Binary</th></tr></thead>
+      <tbody id="asciiBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const colorMeta = {
+  red:{name:'紅色 Red', css:'var(--red)', glow:'rgba(255,59,59,.55)'},
+  blue:{name:'藍色 Blue', css:'var(--blue)', glow:'rgba(47,124,255,.55)'},
+  white:{name:'白色 White', css:'var(--white)', glow:'rgba(255,255,255,.65)'}
+};
+
+let mapping = {0:'red',1:'blue'};
+let receiveBits = [];
+let decodedChars = [];
+let hintLevel = 0;
+
+let encodeText = '';
+let encodeIndex = 0;
+let binaryEntry = [];
+let encodeSignal = [];
+let binaryStepOK = false;
+let signalStepOK = false;
+
+const teacherPools = {
+  1: ['A','L','P','S','l','p','s'],
+  2: ['OK','NO','LP','ok','Gg'],
+  4: ['LPSS','Love','Bird','Good']
+};
+let teacherLength = 1;
+let teacherSecretMessage = '';
+let teacherBits = '';
+let teacherBitIndex = 0;
+let teacherTransitioning = false;
+let teacherCompleted = false;
+let teacherRevealed = false;
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function changeTopMapping(bit,value){
+  const otherBit = bit===0 ? 1 : 0;
+  if(value===mapping[otherBit]){
+    const sel=document.getElementById(bit===0?'topColor0':'topColor1');
+    sel.value=mapping[bit];
+    alert('0 和 1 不可以使用相同顏色。\nBinary 0 and 1 cannot use the same colour.');
+    return;
+  }
+  mapping[bit]=value;
+  document.getElementById('color0').value=mapping[0];
+  document.getElementById('color1').value=mapping[1];
+  updateMappingUI();
+}
+
+function validateMapping(){
+  const c0=document.getElementById('color0').value;
+  const c1=document.getElementById('color1').value;
+  const fb=document.getElementById('mappingFeedback');
+  if(c0===c1){
+    fb.className='feedback show bad';
+    fb.textContent='0 和 1 不可以使用相同顏色。';
+    return false;
+  }
+  fb.className='feedback';
+  return true;
+}
+function applyMapping(){
+  if(!validateMapping()) return;
+  mapping[0]=document.getElementById('color0').value;
+  mapping[1]=document.getElementById('color1').value;
+  updateMappingUI();
+  const fb=document.getElementById('mappingFeedback');
+  fb.className='feedback show ok';
+  fb.textContent='已套用新的燈光設定。';
+}
+function swapMapping(){
+  const a=document.getElementById('color0').value;
+  const b=document.getElementById('color1').value;
+  document.getElementById('color0').value=b;
+  document.getElementById('color1').value=a;
+  applyMapping();
+}
+function updateMappingUI(){
+  [0,1].forEach(bit=>{
+    const meta=colorMeta[mapping[bit]];
+    const dot=document.getElementById('map'+bit+'Dot');
+    dot.style.background=meta.css;dot.style.color=meta.css;
+    const topSel=document.getElementById(bit===0?'topColor0':'topColor1');
+    if(topSel) topSel.value=mapping[bit];
+  });
+  const c0=document.getElementById('color0');
+  const c1=document.getElementById('color1');
+  if(c0) c0.value=mapping[0];
+  if(c1) c1.value=mapping[1];
+  buildLightButtons();
+  renderReceiveBuffer();
+  renderEncodeSignal();
+  updateTeacherDisplay();
+}
+function makeLightButton(bit, handler){
+  const meta=colorMeta[mapping[bit]];
+  const btn=document.createElement('button');
+  btn.className='light-btn';
+  btn.style.background=`radial-gradient(circle at 50% 35%, ${meta.css} 0, ${meta.css} 18%, #101a28 72%)`;
+  btn.style.boxShadow=`0 0 28px ${meta.glow}`;
+  btn.innerHTML=`<span class="orb" style="background:${meta.css};box-shadow:0 0 28px ${meta.css}"></span>${meta.name}<br><small>二進制 Binary ${bit}</small>`;
+  btn.onclick=()=>{btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse'); handler(bit);};
+  return btn;
+}
+function buildLightButtons(){
+  const r=document.getElementById('receiveLightButtons');
+  const e=document.getElementById('encodeLightButtons');
+  if(r){r.innerHTML='';r.append(makeLightButton(0,addSignal),makeLightButton(1,addSignal))}
+  if(e){e.innerHTML='';e.append(makeLightButton(0,addEncodeSignal),makeLightButton(1,addEncodeSignal))}
+}
+
+function addSignal(bit){
+  if(receiveBits.length>=8) return;
+  receiveBits.push(String(bit));
+  renderReceiveBuffer();
+  if(receiveBits.length===8){
+    const fb=document.getElementById('decodeFeedback');
+    fb.className='feedback show info';
+    fb.textContent='位元組完成 Byte Complete! 現在嘗試解碼。';
+  }
+}
+function undoSignal(){receiveBits.pop();renderReceiveBuffer();clearDecodeState()}
+function clearByte(){receiveBits=[];renderReceiveBuffer();clearDecodeState()}
+function resetReceive(){
+  if(!confirm('確定重新開始整個接收活動？')) return;
+  receiveBits=[];decodedChars=[];renderReceiveBuffer();clearDecodeState();
+  document.getElementById('receivedMessage').textContent='—';
+}
+function clearDecodeState(){
+  hintLevel=0;
+  document.getElementById('hintArea').innerHTML='';
+  document.getElementById('decodeAnswer').value='';
+  document.getElementById('decodeFeedback').className='feedback';
+}
+function renderReceiveBuffer(){
+  const el=document.getElementById('receiveBuffer');
+  if(!el)return;
+  el.innerHTML='';
+  for(let i=0;i<8;i++){
+    const cell=document.createElement('div');cell.className='bitcell';
+    const b=receiveBits[i];
+    let lamp='';
+    if(b!==undefined){
+      const meta=colorMeta[mapping[b]];
+      lamp=`<div class="lamp" style="background:${meta.css};box-shadow:0 0 13px ${meta.css}"></div>`;
+    } else lamp='<div class="lamp" style="background:#182433"></div>';
+    cell.innerHTML=`<div class="n">Bit ${i+1}</div>${lamp}<div class="b">${b??'_'}</div>`;
+    el.appendChild(cell);
+  }
+  document.getElementById('receiveCount').textContent=`${receiveBits.length} / 8 bits`;
+  document.getElementById('remainingText').textContent=receiveBits.length<8?`還差 ${8-receiveBits.length} bits`:'位元組完成 Byte Complete!';
+  document.getElementById('receiveBits').textContent=receiveBits.join('')+'_'.repeat(8-receiveBits.length);
+}
+function checkDecode(){
+  const fb=document.getElementById('decodeFeedback');
+  if(receiveBits.length!==8){
+    fb.className='feedback show bad';fb.textContent='請先收齊 8 個位元 8 bits。';return;
+  }
+  const bits=receiveBits.join('');
+  const char=String.fromCharCode(parseInt(bits,2));
+  const ans=document.getElementById('decodeAnswer').value;
+  if(ans===char){
+    fb.className='feedback show ok';
+    fb.textContent=`✓ 正確 Correct! ${bits} = ${char}`;
+    decodedChars.push(char);
+    document.getElementById('receivedMessage').textContent=decodedChars.join('');
+    setTimeout(()=>{receiveBits=[];renderReceiveBuffer();clearDecodeState()},700);
+  }else{
+    fb.className='feedback show bad';fb.textContent='未正確，再試一次。 Not correct yet.';
+  }
+}
+function showHint(){
+  if(receiveBits.length!==8){
+    document.getElementById('hintArea').textContent='請先收齊 8 個位元 8 bits。';return;
+  }
+  hintLevel=Math.min(2,hintLevel+1);
+  const bits=receiveBits.join('');
+  if(hintLevel===1){
+    document.getElementById('hintArea').textContent='提示 Hint 1：把這 8-bit 二進制直接到 ASCII 表中尋找相同編碼。';
+  }
+  if(hintLevel===2){
+    document.getElementById('hintArea').innerHTML=`提示 Hint 2：你正在尋找的編碼是 <strong>${bits}</strong>。按「查看 ASCII 表 / ASCII Table」找出對應字元。`;
+  }
+}
+
+function startEncode(){
+  encodeText=document.getElementById('encodeMessageInput').value.trim();
+  if(!encodeText){alert('請輸入要發送的文字。');return}
+  if([...encodeText].some(ch=>ch.charCodeAt(0)>127)){
+    alert('v1 練習使用標準 ASCII，請輸入英文字母、數字或常用 ASCII 符號。');
+    return;
+  }
+  encodeIndex=0;
+  document.getElementById('encodeWorkspace').style.display='block';
+  loadEncodeChar();
+}
+function loadEncodeChar(){
+  const ch=encodeText[encodeIndex];
+  document.getElementById('currentChar').textContent=ch;
+  document.getElementById('charIndexLabel').textContent=`${encodeIndex+1} / ${encodeText.length}`;
+  binaryStepOK=signalStepOK=false;
+  binaryEntry=[];encodeSignal=[];
+  renderBinaryEntry();renderEncodeSignal();
+  ['binaryFeedback','signalFeedback','transmitFeedback'].forEach(id=>document.getElementById(id).className='feedback');
+  document.getElementById('transmitBtn').disabled=true;
+}
+function addBinaryEntry(bit){
+  if(binaryEntry.length<8) binaryEntry.push(String(bit));
+  renderBinaryEntry();
+}
+function undoBinaryEntry(){binaryEntry.pop();renderBinaryEntry()}
+function renderBinaryEntry(){
+  const el=document.getElementById('binaryEntry');if(!el)return;
+  el.innerHTML='';
+  for(let i=0;i<8;i++){
+    const b=binaryEntry[i]??'_';
+    const box=document.createElement('button');
+    box.textContent=b;
+    box.disabled=true;
+    box.style.opacity=b==='_'?'.55':'1';
+    el.appendChild(box);
+  }
+}
+function checkBinaryEntry(){
+  if(binaryEntry.length!==8){showFeedback('binaryFeedback','bad','請先輸入完整 8 bits。');return}
+  const expected=encodeText[encodeIndex].charCodeAt(0).toString(2).padStart(8,'0');
+  if(binaryEntry.join('')===expected){
+    binaryStepOK=true;showFeedback('binaryFeedback','ok','✓ 8-bit Binary 正確。');
+  }else showFeedback('binaryFeedback','bad','Binary 未正確，再檢查位值。');
+}
+function addEncodeSignal(bit){
+  if(!binaryStepOK){showFeedback('signalFeedback','bad','請先完成正確的二進制 Binary。');return}
+  if(encodeSignal.length<8) encodeSignal.push(String(bit));
+  renderEncodeSignal();
+}
+function undoEncodeSignal(){encodeSignal.pop();renderEncodeSignal()}
+function renderEncodeSignal(){
+  const el=document.getElementById('signalSequence');if(!el)return;
+  el.innerHTML='';
+  encodeSignal.forEach(b=>{
+    const meta=colorMeta[mapping[b]];
+    const chip=document.createElement('div');chip.className='signal-chip';
+    chip.style.background=meta.css;chip.style.boxShadow=`0 0 14px ${meta.css}`;
+    el.appendChild(chip);
+  });
+}
+function checkSignalSequence(){
+  if(!binaryStepOK){showFeedback('signalFeedback','bad','請先完成正確的二進制 Binary。');return}
+  const expected=encodeText[encodeIndex].charCodeAt(0).toString(2).padStart(8,'0');
+  if(encodeSignal.join('')===expected){
+    signalStepOK=true;showFeedback('signalFeedback','ok','✓ 燈號準備完成 Signal Ready');
+    document.getElementById('transmitBtn').disabled=false;
+  }else showFeedback('signalFeedback','bad','請再檢查你的光訊號次序。');
+}
+function transmitCurrent(){
+  if(!signalStepOK)return;
+  const fibre=document.getElementById('fibre');
+  fibre.innerHTML='';
+  encodeSignal.forEach((b,i)=>{
+    setTimeout(()=>{
+      const meta=colorMeta[mapping[b]];
+      const d=document.createElement('div');d.className='pulse-dot';
+      d.style.background=meta.css;d.style.color=meta.css;
+      fibre.appendChild(d);requestAnimationFrame(()=>d.classList.add('go'));
+    },i*160);
+  });
+  const ch=encodeText[encodeIndex];
+  setTimeout(()=>{
+    showFeedback('transmitFeedback','ok',`已傳送 Transmitted：${ch}`);
+    if(encodeIndex<encodeText.length-1){
+      encodeIndex++;
+      setTimeout(loadEncodeChar,650);
+    }else{
+      showFeedback('transmitFeedback','ok',`完成！訊息已準備完成 Message Ready: ${encodeText}`);
+    }
+  },encodeSignal.length*160+1100);
+}
+function showFeedback(id,type,text){
+  const fb=document.getElementById(id);fb.className=`feedback show ${type}`;fb.textContent=text;
+}
+
+function selectTeacherLength(len){
+  teacherLength=len;
+  [1,2,4].forEach(n=>{
+    const btn=document.getElementById('teacherLen'+n);
+    if(btn) btn.classList.toggle('active',n===len);
+  });
+}
+
+function startTeacherRandom(){
+  const pool=teacherPools[teacherLength];
+  teacherSecretMessage=pool[Math.floor(Math.random()*pool.length)];
+
+  teacherBits='';
+  for(const ch of teacherSecretMessage){
+    teacherBits += ch.charCodeAt(0).toString(2).padStart(8,'0');
+  }
+
+  teacherBitIndex=0;
+  teacherTransitioning=false;
+  teacherCompleted=false;
+  teacherRevealed=false;
+
+  const ws=document.getElementById('teacherWorkspace');
+  ws.style.display='block';
+
+  const end=document.getElementById('teacherEndFeedback');
+  end.className='feedback';
+  end.textContent='';
+
+  const answer=document.getElementById('teacherAnswer');
+  answer.classList.remove('show');
+  document.getElementById('teacherAnswerValue').textContent='';
+
+  updateTeacherDisplay(false);
+  setTimeout(()=>ws.scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function updateTeacherDisplay(animate=false){
+  const ws=document.getElementById('teacherWorkspace');
+  if(!ws || ws.style.display==='none' || !teacherBits)return;
+
+  const total=teacherBits.length;
+  teacherBitIndex=Math.max(0,Math.min(teacherBitIndex,total-1));
+
+  const bit=teacherBits[teacherBitIndex];
+  const meta=colorMeta[mapping[bit]];
+  const signalNo=teacherBitIndex+1;
+  const charNo=Math.floor(teacherBitIndex/8)+1;
+  const bitInChar=(teacherBitIndex%8)+1;
+
+  const light=document.getElementById('teacherLight');
+  const orb=document.getElementById('teacherOrb');
+
+  const applySignal=()=>{
+    orb.style.background=meta.css;
+    orb.style.boxShadow=`0 0 50px ${meta.css}`;
+    document.getElementById('teacherColorName').textContent=meta.name;
+    document.getElementById('teacherProgress').innerHTML=
+      `第 ${signalNo} / ${total} 個訊號 &nbsp;·&nbsp; 字元 ${charNo} / ${teacherLength} &nbsp;·&nbsp; 位元 ${bitInChar} / 8`;
+  };
+
+  if(animate){
+    teacherTransitioning=true;
+    light.classList.add('signal-flash');
+
+    setTimeout(()=>{
+      applySignal();
+      light.classList.remove('signal-flash');
+      teacherTransitioning=false;
+    },220);
+  }else{
+    applySignal();
+  }
+}
+
+function teacherPrev(){
+  if(teacherTransitioning || !teacherBits)return;
+
+  const end=document.getElementById('teacherEndFeedback');
+  end.className='feedback';
+
+  if(teacherBitIndex>0){
+    teacherBitIndex--;
+    updateTeacherDisplay(true);
+  }
+}
+
+function teacherNext(){
+  if(teacherTransitioning || !teacherBits)return;
+
+  // 已完成傳送：再按一次才「開估」顯示答案。
+  if(teacherCompleted){
+    if(!teacherRevealed){
+      teacherRevealed=true;
+
+      const answer=document.getElementById('teacherAnswer');
+      document.getElementById('teacherAnswerValue').textContent=teacherSecretMessage;
+      answer.classList.add('show');
+
+      const end=document.getElementById('teacherEndFeedback');
+      end.className='feedback show ok';
+      end.textContent='🎉 開估！這次傳送的訊息如下。';
+
+      document.getElementById('teacherProgress').textContent='答案已揭曉 Answer Revealed';
+      document.getElementById('teacherColorName').textContent='開估 Reveal';
+    }
+    return;
+  }
+
+  // 尚有下一個燈號：先短暫熄燈，再顯示下一個訊號。
+  if(teacherBitIndex < teacherBits.length-1){
+    teacherBitIndex++;
+    updateTeacherDisplay(true);
+    return;
+  }
+
+  // 最後一個訊號之後，第一次再按 Next：只顯示「傳送完成」，不顯示答案。
+  teacherTransitioning=true;
+  const light=document.getElementById('teacherLight');
+  light.classList.add('signal-flash');
+
+  setTimeout(()=>{
+    light.classList.remove('signal-flash');
+
+    const orb=document.getElementById('teacherOrb');
+    orb.style.background='#0a1422';
+    orb.style.boxShadow='none';
+
+    document.getElementById('teacherColorName').textContent='傳送完成 Transmission Complete';
+    document.getElementById('teacherProgress').textContent=`已完成 ${teacherBits.length} 個訊號`;
+
+    const end=document.getElementById('teacherEndFeedback');
+    end.className='feedback show info';
+    end.textContent='請同學先估答案。準備好後，再按一次「下一個訊號 Next」開估。';
+
+    teacherCompleted=true;
+    teacherTransitioning=false;
+  },220);
+}
+
+function openAscii(){
+  const body=document.getElementById('asciiBody');
+  if(!body.children.length){
+    const codes=[];
+    for(let c=32;c<=126;c++){
+      if(c===32 || (c>=48&&c<=57) || (c>=65&&c<=90) || (c>=97&&c<=122)){
+        codes.push(c);
+      }
+    }
+    body.innerHTML=codes.map(c=>{
+      const ch=c===32?'Space':String.fromCharCode(c);
+      return `<tr><td>${ch}</td><td>${c.toString(2).padStart(8,'0')}</td></tr>`;
+    }).join('');
+  }
+  document.getElementById('asciiModal').classList.add('show');
+}
+function closeAscii(){document.getElementById('asciiModal').classList.remove('show')}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAscii()});
+updateMappingUI();
+renderReceiveBuffer();
+renderBinaryEntry();
+</script>
+</body>
+</html>
